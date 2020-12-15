@@ -1,0 +1,49 @@
+@startuml prebid_td_interest
+
+title Prebid: interest bid selection and final decision
+
+participant User
+participant "pub.com" as Pub
+participant "prebid.js" as Pbjs
+participant TurtleDove as TD
+participant "prebid_ig.js" as PbIgjs
+participant "prebid_ig_[SSP_module].js" as PbIgSspjs 
+
+activate Pub
+Pub -> Pbjs: 1. begin final ad selection
+
+activate Pbjs
+Pbjs -> Pbjs: 2. select contextual winner
+Pbjs -> Pbjs: 3. construct uber-metadata object
+Pbjs -> TD: 4: navigator.renderInterestGroupAd
+
+activate TD
+TD -> PbIgjs: 5. IG bid selection
+activate PbIgjs
+PbIgjs -> PbIgSspjs: 6. SSP contextual metadata
+activate PbIgSspjs
+PbIgSspjs -> PbIgSspjs: 7. SSP IG bid selection/auction
+PbIgjs <- PbIgSspjs: 8. SSP IG ad/bid
+deactivate PbIgSspjs
+PbIgjs -> PbIgjs: 9. global IG selection
+PbIgjs -> PbIgjs: 8. compare contextual bid to selected IG bid
+TD <- PbIgjs: 9. true/false
+deactivate PbIgjs
+
+alt IG bid renders
+    Pbjs <- TD: 10. true
+    Pbjs -> Pbjs: 10.1. record IG win
+else IG bid doesn't render
+    Pbjs <- TD: 10. false
+    deactivate TD
+    Pbjs -> Pbjs: 10.1. render contextual ad
+    Pbjs -> Pbjs: 10.2. record contextual win
+end
+
+Pub <- Pbjs: 11. ad rendered
+deactivate Pbjs
+
+User <- Pub
+
+deactivate Pub
+@enduml

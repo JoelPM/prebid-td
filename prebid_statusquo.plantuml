@@ -1,0 +1,51 @@
+@startuml prebid
+
+participant User
+participant "pub.com" as Pub
+participant "prebid.js" as Pbjs
+participant SSPs
+participant DSPs
+participant "gam.js" as Gmjs
+participant "GAM/AdX" as Gam
+
+User -> Pub: 1. navigates browser to pub.com
+activate Pub
+Pub -> Pbjs: 2. load, configure, execute prebid.js
+activate Pbjs
+Pbjs -> SSPs: 3. make ad requests
+activate SSPs
+SSPs -> SSPs: 4. traffic quality controls
+SSPs -> DSPs: 5. make bid requests 
+activate DSPs
+SSPs <- DSPs: 6. respond with bids
+deactivate DSPs
+SSPs -> SSPs: 7. pub ad controls
+Pbjs <- SSPs: 8. respond with ads
+deactivate SSPs
+Pbjs -> Pbjs: 9. store bids/creatives
+Pub <- Pbjs: 10. SSP bid information given to page
+deactivate Pbjs
+deactivate Pub
+
+note over Pub, Gmjs
+At this point Prebid cedes control back to the publisher, who configures the ad tag and gives control to GAM.
+end note
+
+Pub <-> Gmjs: 11. configure K/V pairs based on prebid.js bids
+activate Pub
+activate Gmjs
+Pub -> Gmjs: 12. load slot
+Gmjs -> Gam: 13. ad request
+activate Gam
+Gmjs <- Gam: 14. respond with winning ad, which may be prebid.js line item
+deactivate Gam
+alt GAM/AdX highest bid
+Gmjs -> Gmjs: 15. render GAM/AdX result
+else Prebid.js highest bid
+Gmjs -> Pbjs: 15. render highest stored SSP bid/ad
+end
+Pub <- Gmjs
+deactivate Gmjs
+User <- Pub: 16. show highest value advertisement
+deactivate Pub
+@enduml

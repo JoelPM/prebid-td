@@ -1,0 +1,53 @@
+@startuml prebid_td_context
+
+title Prebid: contextual selection process
+
+participant User
+participant "pub.com" as Pub
+participant "prebid.js" as Pbjs
+participant SSPs
+participant DSPs
+participant "gam.js" as Gmjs
+participant "GAM/AdX" as Gam
+
+User -> Pub: 1. navigates browser to pub.com
+activate Pub
+Pub -> Pbjs: 2. load, configure, execute prebid.js
+activate Pbjs
+Pbjs -> SSPs: 3. make contextual ad requests
+activate SSPs
+SSPs -> SSPs: 4. traffic quality controls
+SSPs -> DSPs: 5. make contextual bid requests 
+activate DSPs
+SSPs <- DSPs: 6. respond with contextual bids
+deactivate DSPs
+SSPs -> SSPs: 7. pub ad controls
+Pbjs <- SSPs: 8. respond with contextual ads
+deactivate SSPs
+Pbjs -> Pbjs: 9. store contextual bids/creatives
+Pub <- Pbjs: 10. cede control to publisher
+deactivate Pbjs
+deactivate Pub
+
+note over Pub, Gmjs
+pub.com transfers control from prebid.js to gam.js at this point.
+This assume that gam.js provides an API for receiving contextual ad information and doing selection between their contextual ad and IG based ads.
+end note
+
+Pub <-> Gmjs: 11. configure K/V pairs based on prebid.js bids
+activate Pub
+activate Gmjs
+Pub -> Gmjs: 12. load slot
+Gmjs -> Gam: 13. contextual ad request
+activate Gam
+Gmjs <- Gam: 14. respond with winning contextual ad
+deactivate Gam
+Pub <- Gmjs: 15. contextual ad/bid available
+deactivate Gmjs
+
+note over Pub, Gmjs
+All contextual bids are now in the page. Any IG bids are resident in browser. Now the final selection process must take place.
+end note
+
+deactivate Pub
+@enduml
