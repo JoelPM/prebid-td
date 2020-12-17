@@ -25,18 +25,15 @@ SSPs -> SSPs: 7. pub ad controls
 Pbjs <- SSPs: 8. respond with contextual ads
 deactivate SSPs
 Pbjs -> Pbjs: 9. store contextual bids/creatives
-Pub <- Pbjs: 10. cede control to publisher
+Pbjs -> Gmjs: 10. configure k/v pair for ad tag
+activate Gmjs
+Pub <- Pbjs: 11. wait for ad slot to load
 deactivate Pbjs
-deactivate Pub
 
 note over Pub, Gmjs
-pub.com transfers control from prebid.js to gam.js at this point.
-This assume that gam.js provides an API for receiving contextual ad information and doing selection between their contextual ad and IG based ads.
+At this point control over the ad loading process is transferred from Prebid to GAM
 end note
 
-Pub <-> Gmjs: 11. configure K/V pairs based on prebid.js bids
-activate Pub
-activate Gmjs
 Pub -> Gmjs: 12. load slot
 Gmjs -> Gam: 13. contextual ad request
 activate Gam

@@ -1,8 +1,9 @@
-@startuml prebid
+@startuml prebid_statusquo
 
 participant User
 participant "pub.com" as Pub
 participant "prebid.js" as Pbjs
+participant "prebid_[SSP_MODULE].js" as PbSspjs
 participant SSPs
 participant DSPs
 participant "gam.js" as Gmjs
@@ -12,40 +13,43 @@ User -> Pub: 1. navigates browser to pub.com
 activate Pub
 Pub -> Pbjs: 2. load, configure, execute prebid.js
 activate Pbjs
-Pbjs -> SSPs: 3. make ad requests
+Pbjs -> PbSspjs: 3. invoke SSP bid adapter
+activate PbSspjs
+PbSspjs -> SSPs: 4. ad request
 activate SSPs
-SSPs -> SSPs: 4. traffic quality controls
-SSPs -> DSPs: 5. make bid requests 
+SSPs -> SSPs: 5. traffic quality controls
+SSPs -> DSPs: 6. make bid requests 
 activate DSPs
-SSPs <- DSPs: 6. respond with bids
+SSPs <- DSPs: 7. respond with bids
 deactivate DSPs
-SSPs -> SSPs: 7. pub ad controls
-Pbjs <- SSPs: 8. respond with ads
+SSPs -> SSPs: 8. pub ad controls
+PbSspjs <- SSPs: 9. ad w/price
 deactivate SSPs
-Pbjs -> Pbjs: 9. store bids/creatives
-Pub <- Pbjs: 10. SSP bid information given to page
+Pbjs <- PbSspjs: 10. ad w/price
+deactivate PbSspjs
+
+Pbjs -> Pbjs: 11. select appropriate ad
+Pbjs -> Gmjs: 12. configure k/v pair for selected ad
+activate Gmjs
+Pub <- Pbjs: 13. wait for ad slot to load
 deactivate Pbjs
-deactivate Pub
 
 note over Pub, Gmjs
-At this point Prebid cedes control back to the publisher, who configures the ad tag and gives control to GAM.
+At this point control over the ad loading process is transferred from Prebid.js to GAM (final selection layer)
 end note
 
-Pub <-> Gmjs: 11. configure K/V pairs based on prebid.js bids
-activate Pub
-activate Gmjs
-Pub -> Gmjs: 12. load slot
-Gmjs -> Gam: 13. ad request
+Pub -> Gmjs: 14. load slot
+Gmjs -> Gam: 15. ad request
 activate Gam
-Gmjs <- Gam: 14. respond with winning ad, which may be prebid.js line item
+Gmjs <- Gam: 16. respond with winning ad, which may be prebid.js line item
 deactivate Gam
 alt GAM/AdX highest bid
-Gmjs -> Gmjs: 15. render GAM/AdX result
+Gmjs -> Gmjs: 17. render GAM/AdX result
 else Prebid.js highest bid
-Gmjs -> Pbjs: 15. render highest stored SSP bid/ad
+Gmjs -> Pbjs: 17. render selected SSP ad
 end
 Pub <- Gmjs
 deactivate Gmjs
-User <- Pub: 16. show highest value advertisement
+User <- Pub: 18. show highest value advertisement
 deactivate Pub
 @enduml

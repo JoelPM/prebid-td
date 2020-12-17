@@ -7,7 +7,7 @@ participant "pub.com" as Pub
 participant "prebid.js" as Pbjs
 participant TurtleDove as TD
 participant "prebid_ig.js" as PbIgjs
-participant "prebid_ig_[SSP_module].js" as PbIgSspjs 
+participant "prebid_ig_[SSP_module].js" as PbIgSspjs
 
 activate Pub
 Pub -> Pbjs: 1. begin final ad selection
