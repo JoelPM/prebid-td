@@ -55,20 +55,60 @@ This sequence diagram attempts to illustrate how Prebid.js functions on a publis
 
 While it is a technical detail to show the invocation of the `prebid_[SSP_MODULE].js` in the sequence diagram above, it's there to illustrate the principle of SSP involvement and code control in the context of the greater auction that occurs.
 
-Hopefully this diagram helps show how a Publisher using Prebid.js is able to integrate other SSPs into GAM which must be the final decision layer due to the reasons noted above (and others).
+Hopefully this diagram helps show how a Publisher using Prebid.js is able to integrate other SSPs into GAM.
 
-# TurtleDove Impact on Ad Selection Process
-TurtleDove proposes a number of changes to how ad tech will function, but this document is only focused on the changes to the ad selection process.
+# TurtleDove and Ad Selection 
+While TurtleDove proposes a number of changes to how ad tech will function this document is focused on the changes to the ad selection process in the context of the browser.
 
-## Chrome Becomes Final Selection Layer
-Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a TurtleDove world, Chrome will contain interest group demand that isn't accessible via any other mans and won't provide a price signal externally. Additionally, if it returns 'true' it has also taken the non-reversible action of rendering an ad. As a result, the browser/TurtleDove must become the final selection layer. 
+## 1. Chrome/TurtleDove Becomes the Final Selection Layer
+Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a TurtleDove world, Chrome will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. Additionally, if ```navigator.renderInterestGroupAd``` returns 'true' it has also taken the non-reversible action of rendering an ad. As a result, the browser/TurtleDove must become the final selection layer.
 
-This raises the question of how GAM will integrate into the final selection layer in the browser and if it will help or hinder SSPs. If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes navigator.renderInterestGroupAd without allowing other SSPs to participate this would be bad.
+SSPs are used to participating in a final selection hosted elsewhere but it raises the question of how GAM will adjust to this.
 
-**The first fundamental change in ad selection is that the browser is now the final selection layer.**
+## 2. SSP Logic Must Span Chrome/TurtleDove
+Today SSPs are able to provide publishers with a realtime valuation of an ad slot because they have contextual and user information in one request and are able to respond with a single *best* value in response to that request.
 
-## SSPs No Longer Know Value in Realtime
-Today SSPs are able to provide publishers with a realtime valuation of an ad slot because they have contextual and user information in one request and are able to respond with a single *best* value in response to that request. In a TurtleDove world SSPs will only know the contextual value of the ad slot in realtime. The user value of an ad slot will be stored in the browser (if an IG ad request has been issued) and will never be known in realtime by the SSP, publisher, or any entity that's not behind the curtain of TurtleDove.
+The process of selecting a best value involves the following steps:
+1) Traffic quality (TQ) - is this a legitimate request from a real user?
+2) DSP qualification - which DSPs are interested in this request?
+2) Bid solicitation - which DSPs will place a bid on this request?
+3) Ad Quality (AQ) - which bids are eligible given the publisher's requirements?
+4) Valuation - which bid is most valuable to the publisher at this moment?
+
+This process must now be split across the SSPs and the browser (for IG bids), which means that an SSP will no longer know what an ad slot is worth in realtime (nor will the publisher).
+
+# Prebid.js in a TurtleDove World
+For the contextual ad selection process, Prebid.js can continue to function in the same manner as today. Here's what that looks like:
+
+![Prebid.js Sequence Diagram](out/prebid_td_context/prebid_td_context.png)
+
+However, the browser will also contain bids that are targeted at Interest Groups. These bids cannot escape the TurtleDove sandbox, which means that logic to choose between them must be sent into TurtleDove.
+
+There are two parts to the logic that must be sent into TurtleDove:
+1) Prebid IG controller - the script that runs the overall IG bid selection process
+2) Prebig IG SSP adapters - the SSP implemented functionality to choose from among an SSP's IG bids
+
+## Prebid IG SSP Adapter
+In the same way that an SSP implements an adapter to integrate with Prebid.js, an SSP will need to implement an adapter that selects from the IG based bids that it owns. This entails implementing some of the logic noted above:
+
+* Bid targeting - which bids are eligible to participate based on advertiser targeting?
+* Context targeting - which bids are eligible to participate based on pub restrictions?
+* Valuation - does the current context influence the value of these bids? Are there Deals or Private Marketplace rules in effect?
+
+In order to do this selection process the SSP adapter needs to have the contextual information passed in, including the publisher's restrictions and any active business models. The IG bids also need to contain any advertiser restrictions so that those can be evaluated given the current context. In the past all this information stayed within the SSP but for ad selection to be completed in TurtleDove the information must be sent to the browser.
+
+## Prebid IG Controller
+The Prebid IG controller must receive the winning contextual bid (already chosen by Prebid.js) and all the SSP specific metadata. The controller passes the SSP metadata to the SSP IG adapter and receives a bid (or none) from the SSP adapter. The IG Controller then compares the results from all the SSP IG Adapters and chooses a winner. Finally, the IG Controller compares the contextual winner to the IG winner. If an IG winner exists and is higher than the contextual winner, the ad is rendered and the result of ```navigator.renderInterestGroupAd``` is ```true```. If the contextual winner has the higher value then ```false``` is returned and the overall Prebid.js script renders the contextual ad.
+
+## Prebid IG Flow
+Here's what that looks like in a flow diagram:
+
+![Prebid-td.js Sequence Diagram](out/prebid_td_interest/prebid_td_interest.png)
+
+
+
+
+# EOM / scratch beyond this point
 
 While the TurtleDove author has stated the goal is that TurtleDove execute a local auction over SSP demand ([#73](https://github.com/WICG/turtledove/issues/73)), I don't see how this is possible without provding an API that returns a price signal back to the SSP without rendering an ad. An example of what this might look like:
 
@@ -112,11 +152,10 @@ This is remarkably similar to the GAM/AdX situation discussed before. We need a 
 ## Prebid.js in TurtleDove
 Prebid.js will continue to work for contextual bids. Here's what that looks like:
 
-![Prebid.js Sequence Diagram](out/prebid_td_context/prebid_td_context.png)
 
-However, it needs to be extended to also work for Interest Group bids that are stored in the browser. 
 
-## Prebid.js extended: Prebid-td.js
-The same principles that make Prebid.js work today (pub control, SSP control, transparency, etc) also allow it to work in the TurtleDove world. Since it's not possible to have a pub local auction, there's one global auction that Publishers should be in control of, with SSPs able to control the logic that is used to select their bids. Since TurtleDove makes it possible to pass a bidding script into the ```navigator.renderInterestGroupAd``` call the publisher will pass in a Prebid module that does the selection from among all the IG bids that are resident.
 
-![Prebid-td.js Sequence Diagram](out/prebid_td_interest/prebid_td_interest.png)
+
+
+# Open Questions
+This raises the question of how GAM will integrate into the final selection layer in the browser and if it will help or hinder SSPs. If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes navigator.renderInterestGroupAd without allowing other SSPs to participate this would be bad.
