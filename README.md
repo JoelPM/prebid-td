@@ -105,9 +105,6 @@ Here's what that looks like in a flow diagram:
 
 ![Prebid-td.js Sequence Diagram](out/prebid_td_interest/prebid_td_interest.png)
 
-
-
-
 # EOM / scratch beyond this point
 
 While the TurtleDove author has stated the goal is that TurtleDove execute a local auction over SSP demand ([#73](https://github.com/WICG/turtledove/issues/73)), I don't see how this is possible without provding an API that returns a price signal back to the SSP without rendering an ad. An example of what this might look like:
@@ -148,14 +145,6 @@ However, TurtleDove views an IG based bid price to be a privacy escape vector so
 Some fraction of the demand is locked behind the TurtleDove curtain, we can't get a price signal out from behind the curtain, and publisher's need to stay in control of their business models while integrating different demand sources.
 
 This is remarkably similar to the GAM/AdX situation discussed before. We need a solution that allows publishers to own their business model, SSPs to control the logic specific to the demand they represent, and a way to do so in a blackbox environment.
-
-## Prebid.js in TurtleDove
-Prebid.js will continue to work for contextual bids. Here's what that looks like:
-
-
-
-
-
 
 # Open Questions
 This raises the question of how GAM will integrate into the final selection layer in the browser and if it will help or hinder SSPs. If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes navigator.renderInterestGroupAd without allowing other SSPs to participate this would be bad.
