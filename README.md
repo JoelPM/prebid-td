@@ -105,8 +105,69 @@ Here's what that looks like in a flow diagram:
 
 ![Prebid-td.js Sequence Diagram](out/prebid_td_interest/prebid_td_interest.png)
 
-# EOM / scratch beyond this point
+1. Pub invokes final selection process in Prebid.js
+2. Prebid selects/looks up contextual winner
+3. Prebid constructs uber-metadata object (each SSP needs the contextual info and pub restrictions, etc)
+4. Prebid invokes ```navigator.renderInterestGroupAd``` with winning contextual bid, uber-metadata object, and bundled Prebid IG Controller & SSP Adapters
+5. Prebid IG Controller begins IG bid selection process
+6. Prebid IG Controller invokes SSP IG adapters and passes in SSP contextual metadata
+7. SSP IG Adapter does bid targeting, context targeting, validation (SSP logic)
+8. SSP IG Adapter passes bad winning SSP IG ad/bid
+9. Prebid IG Controller selects winning IG ad from among those returned by SSP IG Adapters
+10. Prebid IG Controller compares contextual ad to IG ad
+11. Prebid IG Controller renders IG ad if winner and returns true, or returns false (if context is winner)
+12. IG Bid Winner
+    1. ```navigator.renderAdInterestGroup``` returns true
+    2. Prebid record IG win
+12. Context Bid Winner
+    1. ```navigator.renderAdInterestGroup``` returns false
+    2. Prebid renders contextual ad
+    3. Prebid records contextual win
+13. Ad has rendered
 
+As can be seen in the sequence diagram above, the TD API is invoked by Prebid which is also responsible for contstructing the arguments.
+
+## Winning Bid
+This could be as simple as a numeric value or it could be as rich as an OpenRTB bid response object. I think it depends on how complex the Prebid IG Controller is and what info it needs.
+
+```
+var prebidWinningConextualBid = {
+    // possibly an OpenRTB Bid Response object, though doesn't have to be
+}
+```
+
+## Uber Metadata Object
+Ideally this would be represented as an OpenRTB bid request that is supplemented with SSP specific metadata where needed. An OpenRTB bid request is a fairly standard way of capturing contextual information that many SSPs are familiar with and is reasonably concise. It's also consistent with how many of the SSPs probably received the contextual ad request.
+
+```
+var prebidIGContext = {
+  script: "/publishersPrebidIGBundle.js",  // link to publisher's prebidIG bundle
+  request: ortbBidRequest,                 // captures contextual information
+  sspMetadata: {.                          // metadata provided by contextual adapters
+      "magnite": {...},
+      "openx": {...},
+      "pubmatic": {...}
+  }
+};
+```
+
+The invocation would then look like:
+```
+if (navigator.renderInterestGroupAd(prebidWinningContextualBid, prebidIGContext)) {
+  // IG ad rendered
+} else {
+  // Render the contextual ad
+}
+```
+
+# Open Questions
+1. Is there a permissions model for access to IG Bids? What is it?
+An SSP specific TD API seems impossible (see below). The browser running the auction seems bad (see Parrrot). Having bids available for rendering by anyone seems problematic as well. This proposal assumes that anyone who invokes renderInterestGroupAd has access to all bids. I suppose SSPs could encrypt their responses and then pass a key into the metadata object that would allow only them to decrypt it. This actually seems like it might be the best way, though passing an encryption key through the wild is only mildly secure so it's not real security.
+
+2. How will GAM interact with the TD API?
+How will GAM integrate into the final selection layer in the browser and will it help or hinder SSPs? If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes ```navigator.renderInterestGroupAd``` without allowing other SSPs to participate this would be bad.
+
+# An alternative idea that won't work:
 While the TurtleDove author has stated the goal is that TurtleDove execute a local auction over SSP demand ([#73](https://github.com/WICG/turtledove/issues/73)), I don't see how this is possible without provding an API that returns a price signal back to the SSP without rendering an ad. An example of what this might look like:
 
 ```javascript
@@ -145,6 +206,3 @@ However, TurtleDove views an IG based bid price to be a privacy escape vector so
 Some fraction of the demand is locked behind the TurtleDove curtain, we can't get a price signal out from behind the curtain, and publisher's need to stay in control of their business models while integrating different demand sources.
 
 This is remarkably similar to the GAM/AdX situation discussed before. We need a solution that allows publishers to own their business model, SSPs to control the logic specific to the demand they represent, and a way to do so in a blackbox environment.
-
-# Open Questions
-This raises the question of how GAM will integrate into the final selection layer in the browser and if it will help or hinder SSPs. If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes navigator.renderInterestGroupAd without allowing other SSPs to participate this would be bad.
