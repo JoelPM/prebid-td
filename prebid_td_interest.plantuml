@@ -26,21 +26,21 @@ PbIgSspjs -> PbIgSspjs: 7. SSP IG bid selection/auction
 PbIgjs <- PbIgSspjs: 8. SSP IG ad/bid
 deactivate PbIgSspjs
 PbIgjs -> PbIgjs: 9. global IG selection
-PbIgjs -> PbIgjs: 8. compare contextual bid to selected IG bid
-TD <- PbIgjs: 9. true/false
+PbIgjs -> PbIgjs: 10. compare contextual bid to selected IG bid
+TD <- PbIgjs: 11. true/false
 deactivate PbIgjs
 
 alt IG bid renders
-    Pbjs <- TD: 10. true
-    Pbjs -> Pbjs: 10.1. record IG win
+    Pbjs <- TD: 12. true
+    Pbjs -> Pbjs: 12.1. record IG win
 else IG bid doesn't render
-    Pbjs <- TD: 10. false
+    Pbjs <- TD: 13. false
     deactivate TD
-    Pbjs -> Pbjs: 10.1. render contextual ad
-    Pbjs -> Pbjs: 10.2. record contextual win
+    Pbjs -> Pbjs: 13.1. render contextual ad
+    Pbjs -> Pbjs: 13.2. record contextual win
 end
 
-Pub <- Pbjs: 11. ad rendered
+Pub <- Pbjs: 14. ad rendered
 deactivate Pbjs
 
 User <- Pub
