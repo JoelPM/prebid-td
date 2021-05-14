@@ -143,29 +143,44 @@ var prebidWinningConextualBid = {
 }
 ```
 
-## Uber Metadata Object
-@TODO the Fledge API provides more structure we should map this to
+## Auction Configuration
+Fledge offers a flexible configuration object which can be used to pass arbitrary information to the buyers bidding function (perBuyerSignals), the sellers scoring function (sellerSignals), or both (auctionSignals).
+
 Ideally this would be represented as an OpenRTB bid request that is supplemented with SSP specific metadata where needed. An OpenRTB bid request is a fairly standard way of capturing contextual information that many SSPs are familiar with and is reasonably concise. It's also consistent with how many of the SSPs probably received the contextual ad request.
 
 ```
-var prebidIGContext = {
-  script: "/publishersPrebidIGBundle.js",  // link to publisher's prebidIG bundle
-  request: ortbBidRequest,                 // captures contextual information
-  sspMetadata: {.                          // metadata provided by contextual adapters
+
+const myAuctionConfig = {
+  'seller': 'publisher.com',
+  'decisionLogicUrl': '/publishersPrebidIGBundle.js', // link to publisher's prebidIG bundle
+  'trustedScoringSignalsUrl': 'publishers-prebid-server.com/trusted-scoring-signals/',
+  'interestGroupBuyers': ['www.example-dsp.com', 'buyer2.com', ...],
+  'additionalBids': [ prebidWinningContextualBid ],
+  'auctionSignals': ortbBidRequest,   // captures contextual information
+  'sellerSignals': {
+    sspMetadata: {  // metadata provided by contextual adapters
       "magnite": {...},
       "openx": {...},
       "pubmatic": {...}
-  }
+    }
+  },
+  'perBuyerSignals': {
+    'www.example-dsp.com': {...},
+    'www.another-buyer.com': {...},
+    ...},
 };
-```
 
 The invocation would then look like:
+
 ```
-if (navigator.renderInterestGroupAd(prebidWinningContextualBid, prebidIGContext)) {
-  // IG ad rendered
-} else {
-  // Render the contextual ad
-}
+
+navigator.runAdAuction(myAuctionConfig).then((auctionResult) => {
+  if (auctionResult) {
+    // IG ad rendered
+  } else {
+    // Render the contextual ad
+  }
+})
 ```
 
 # Open Questions
