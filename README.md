@@ -5,7 +5,34 @@ An exploration of the role Prebid can play in a Fledge world.
 As DFP (now GAM) became the dominant ad server (and included tight AdX integration) publishers wanted a way to have other demand sources compete in the GAM/AdX ad selection process. While GAM/AdX didn't provide an API to do this, publishers did have the ability create their own line items in DFP that were considered in the selection process. Futhermore, they could activate these line items based on key/value pairs added to the DFP tag invocation. The final step was figuring out how to solicit an independent SSP and map their bid to the right key/value. Soliciting the SSP in the header of the page allowed the bid to be retrieved and mapped to a key/value before the DFP ad slot was fetched. And thus header bidding was born.
 
 # Birth of Prebid.js
-Publishers saw a significant benefit from having a single SSP compete with DFP/AdX and the logical next step was to have multiple SSPs compete. While SSPs provided libraries that made it easy to do header bidding, they all had their own implementation and they weren't designed to work well together. Furthermore, there were different strategies for creating line items, mapping K/V pairs to line items, naming line items, and the creative that triggered the serving of a cached SSP creative. Very sophisticated publishers were capable of writing their own javascript solutions that managed these complexities, as well as paying for AdOps folks to manage the setup in DFP, but it was error prone and expensive. Prebid.js provided a standardized way of integrating with DFP, the publisher's page, and SSPs (who provided adapters that mapped their ad calls and bids to the Prebid standard).
+Publishers saw a significant benefit from having a single SSP compete with DFP/AdX and the next step was to have multiple SSPs compete. While SSPs provided libraries that made it easy to do header bidding, they all had their own implementation and they weren't designed to work well together. Furthermore, there were different strategies for creating line items, mapping K/V pairs to line items, naming line items, and the creative that triggered the serving of a cached SSP creative. Very sophisticated publishers were capable of writing their own javascript solutions that managed these complexities, as well as paying for AdOps folks to manage the setup in DFP, but it was error prone and expensive. Prebid.js provided a standardized way of integrating with DFP, the publisher's page, and SSPs (who provided adapters that mapped their ad calls and bids to the Prebid standard).
+
+# Side note: Why Multiple SSPs?
+Since most SSPs are integrated with the same demand sources, one might ask what benefit there is to integrating with multiple SSPs. The drawbacks are management overhead (for the pubs), duplicated requests (for the DSPs), and extra browser load/latency (for the end users). But publishers did see a significant benefit from having multiple SSPs and there's a good reason for that.
+
+In a perfectly efficient exchange all demand would be submitted to a single auction where a global decision would be made. Unfortunately, most exchanges (ad or otherwise) are far from perfectly efficient. One of the big inefficiencies in programmatic ad exchanges is the way DSPs and SSPs respond with a single bid to a given request. While DSPs are representing many different campaigns, when responding to a bid request from an SSP they run an internal selection process and respond with a single bid on behalf of one of these campaigns. The SSPs receive single bids from a number of different DSPs, then select a winner and respond with that to the next level of auction (the prebid auction). The result is that at each tier of the auction process demand gets lost, which leads to inefficient markets.
+
+Soliciting multiple SSPs had positive results because it exposed more bids. While it's possible that the DSPs are responding with the exact same bids to every SSP, it's highly unlikely. The increased bid density provided a better financial outcome for publishers.
+
+There are also other reasons that not all SSPs represent the same DSP demand. Some of those are:
+* Deals/PMPs may be transacted through a single SSP
+* DSPs may have negotiated different rates with certain SSPs
+* SSPs may not all handle the same type of inventory
+
+There are many reasons why a Publisher is best served by working with multiple SSPs.
+
+## Side side note: First Price Auction (1PA) vs Second Price Auction (2PA)
+At the advent of programmatic advertising the auctions all used a second price strategy. More recently the industry has transitioned to a first price auction strategy. I believe there are two reasons for this:
+1. When multiple layers of auction are happening, if the first layer is a second price auction you can't reason about how your bid will perform in the final layer.
+
+A first price auction means that the bid value essentially stays the same at all selection layers (minus fees) which makes it easier to reason about how your bid will perform regardless of what layer of auction/selection it is competing in.
+
+2) Second price auctions are only truly effective when bid density is high enough.
+
+With DSPs submitting a single bid from all their demand, the density is often not high enough to get a sense of true value, which means pubs must resort to different flooring tactics to avoid being cherry picked.
+
+If the industry wants to return to a second price auction dynamic, then DSPs will need to submit more bids to SSPs, and SSPs may also need to submit more bids to the final decision layer. This will insure that the bid density is high enough for a true value to be determined.
+
 
 # Why Prebid.js works
 ## ... for Publishers
