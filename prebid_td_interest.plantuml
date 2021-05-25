@@ -47,6 +47,8 @@ else contextual ad winner
     deactivate TD
     Pbjs -> Pbjs: 17.2. render contextual ad
     Pbjs -> Pbjs: 13.3. record contextual win
+end
+
 Pub <- Pbjs: 18. ad rendered
 deactivate Pbjs
 
