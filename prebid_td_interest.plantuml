@@ -5,9 +5,10 @@ title Prebid: interest bid selection and final decision
 participant User
 participant "pub.com" as Pub
 participant "prebid.js" as Pbjs
-participant TurtleDove as TD
+participant Fledge as TD
 participant "prebid_ig.js" as PbIgjs
 participant "prebid_ig_[SSP_module].js" as PbIgSspjs
+participant "buyer_bidding_logic.js" as BuyerBLjs
 
 activate Pub
 Pub -> Pbjs: 1. begin final ad selection
@@ -15,32 +16,38 @@ Pub -> Pbjs: 1. begin final ad selection
 activate Pbjs
 Pbjs -> Pbjs: 2. select contextual winner
 Pbjs -> Pbjs: 3. construct uber-metadata object
-Pbjs -> TD: 4: navigator.renderInterestGroupAd
-
 activate TD
-TD -> PbIgjs: 5. IG bid selection
+Pbjs -> TD: 4: navigator.runAdAuction
+
+activate BuyerBLjs
+TD -> BuyerBLjs: 5. call generateBid for each IG
+TD <- BuyerBLjs: 6. DSP bid
+deactivate BuyerBLjs
 activate PbIgjs
-PbIgjs -> PbIgSspjs: 6. SSP contextual metadata
+TD -> PbIgjs: 7. call scoreBid for each bid
 activate PbIgSspjs
-PbIgSspjs -> PbIgSspjs: 7. SSP IG bid selection/auction
-PbIgjs <- PbIgSspjs: 8. SSP IG ad/bid
+PbIgjs -> PbIgSspjs: 8. bid + contextual data
+PbIgSspjs <- PbIgSspjs: 9. validate + score bid
+PbIgjs <- PbIgSspjs: 10. bid score
 deactivate PbIgSspjs
-PbIgjs -> PbIgjs: 9. global IG selection
-PbIgjs -> PbIgjs: 10. compare contextual bid to selected IG bid
-TD <- PbIgjs: 11. true/false
+PbIgjs -> PbIgjs: 11. choose highest standardized score
+PbIgjs -> PbIgjs: 12. compare IG ad to contextual ad
+PbIgjs -> TD: 13. return highest score (or 0)
 deactivate PbIgjs
+TD -> TD: 14. choose highest score
+TD -> Pbjs: 15. token/false
 
-alt IG bid renders
-    Pbjs <- TD: 12. true
-    Pbjs -> Pbjs: 12.1. record IG win
-else IG bid doesn't render
-    Pbjs <- TD: 13. false
+alt IG bid winner
+    TD -> Pbjs: 16.1 opaque object
     deactivate TD
-    Pbjs -> Pbjs: 13.1. render contextual ad
-    Pbjs -> Pbjs: 13.2. record contextual win
-end
-
-Pub <- Pbjs: 14. ad rendered
+    Pbjs -> Pbjs: 16.2. record IG win
+    Pbjs -> Pbjs: 16.3. render IG ad
+else contextual ad winner
+    TD -> Pbjs: 17.1 false
+    deactivate TD
+    Pbjs -> Pbjs: 17.2. render contextual ad
+    Pbjs -> Pbjs: 13.3. record contextual win
+Pub <- Pbjs: 18. ad rendered
 deactivate Pbjs
 
 User <- Pub
