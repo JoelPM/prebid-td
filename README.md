@@ -109,28 +109,26 @@ Here's what that looks like in a flow diagram:
 2. Prebid selects/looks up contextual winner
 3. Prebid constructs uber-metadata object (each SSP needs the contextual info and pub restrictions, etc)
 4. Prebid invokes ```navigator.runAdAuction``` with winning contextual bid, uber-metadata object, and bundled Prebid IG Controller & SSP Adapters
-5. Chrome/Fledge evaluates all interest groups stored client-side calling DSP provided ```generate_bid``` functions
+5. Chrome/Fledge evaluates all interest groups stored client-side calling DSP provided ```generateBid``` functions
 6. DSP bid functions produce bids using a combination of IG and contextual data from the auction configuration
-7. Chrome/Fledge passes returned bids one at a time to Prebid IG Controller ```score_bid``` function
-8. Prebid IG Controller begins IG bid selection process
-9. Prebid IG Controller invokes SSP IG adapters and passes in SSP contextual metadata and bid from DSP
-10. SSP IG Adapter does bid targeting, context targeting, validation (SSP logic)
-11. SSP IG Adapter passes back scored SSP IG ad/bid in **standardized** prebid scoring format @TODO how does prebid choose between different SSPs scores?
-12. Prebid IG Controller selects highest scoring IG ad from among those returned by SSP IG Adapters
-13. Prebid IG Controller compares contextual ad to IG ad
-14. Prebid IG Controller returned IG ad score or ```0``` if contextual ad is preferred
-15. Chrome/Fledge sorts scored ads and chooses highest score (> 0) as winner
-14. Prebid IG Controller renders IG ad if winner and returns true, or returns false (if context is winner)
-14. Chrome/Fledge renders opaque object if IG ad is winner, or returns false (if no valid ad availble or context is winner)
-15. IG Bid Winner
+7. Chrome/Fledge passes returned bids one at a time to Prebid IG Controller ```scoreBid``` function
+8. Prebid IG Controller invokes SSP IG adapters and passes in SSP contextual metadata and bid from DSP
+9. SSP IG Adapter does bid targeting, context targeting, validation (SSP logic)
+10. SSP IG Adapter passes back scored SSP IG ad/bid in **standardized** prebid scoring format @TODO how does prebid choose between different SSPs scores?
+11. Prebid IG Controller selects highest scoring IG ad from among those returned by SSP IG Adapters
+12. Prebid IG Controller compares contextual ad to IG ad
+13. Prebid IG Controller returned IG ad score or ```0``` if contextual ad is preferred
+14. Chrome/Fledge sorts scored ads and chooses highest score (> 0) as winner
+15. Chrome/Fledge returns opaque object for rendering if winner, or returns false (if context is winner)
+16. IG Bid Winner
     1. ```navigator.runAdAuction``` returns opaque object
     2. Prebid record IG win
     3. Prebid passes opaque object to a fenced frame for rendering
-16. Context Bid Winner
+17. Context Bid Winner
     1. ```navigator.runAdAuction``` returns false
     2. Prebid renders contextual ad
     3. Prebid records contextual win
-17. Ad has rendered
+18. Ad has rendered
 
 As can be seen in the sequence diagram above, the Fledge API is invoked by Prebid which is also responsible for contstructing the arguments.
 
