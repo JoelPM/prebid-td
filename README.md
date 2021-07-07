@@ -107,12 +107,18 @@ The process of selecting a best value involves the following steps:
 This process must now be split across the SSPs and the browser (for IG bids), which means that an SSP will no longer know what an ad slot is worth in realtime (nor will the publisher).
 -->
 
-# Prebid.js in a Parakeet World
+# Prebid in a Parakeet World
 For the contextual ad selection process, Prebid.js can continue to function in the same manner as today. Here's what that looks like:
 
 ![Prebid.js Sequence Diagram](out/prebid_td_context/prebid_td_context.png)
 
-However, the browser will also contain bids that are targeted at Interest Groups. These bids cannot escape the Fledge sandbox, which means that logic to choose between them must be sent into Fledge.
+However, the browser will also contain user Interest Group memberships which could increase the value of the ad to a buyer. The Parakeet server will carefully select which IGs can be used in server side ad selection to ensure user privacy.
+
+The Parakeet server will only make an ad request to a single ad tech partner for each ad slot. Therefore, publishers who wish to work with multiple SSPs will need to leverage a server to fan-out requests to each SSP and choose the most appropriate bid to compete with the ad server chosen contextual ad. Prebid server already performs a similar operation and could be extended to handle this responsibiliy.
+
+<!--
+
+These bids cannot escape the Fledge sandbox, which means that logic to choose between them must be sent into Fledge.
 
 There are two parts to the logic that must be sent into TurtleDove:
 1) Prebid IG controller - the script that runs the overall IG bid selection process
