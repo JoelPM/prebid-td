@@ -1,5 +1,5 @@
-# prebid-fledge
-An exploration of the role Prebid can play in a Fledge world.
+# prebid-parakeet
+An exploration of the role Prebid can play in a Parakeet world.
 
 # Birth of Header Bidding
 As DFP (now GAM) became the dominant ad server (and included tight AdX integration) publishers wanted a way to have other demand sources compete in the GAM/AdX ad selection process. While GAM/AdX didn't provide an API to do this, publishers did have the ability create their own line items in DFP that were considered in the selection process. Futhermore, they could activate these line items based on key/value pairs added to the DFP tag invocation. The final step was figuring out how to solicit an independent SSP and map their bid to the right key/value. Soliciting the SSP in the header of the page allowed the bid to be retrieved and mapped to a key/value before the DFP ad slot was fetched. And thus header bidding was born.
@@ -84,15 +84,17 @@ While it is a technical detail to show the invocation of the `prebid_[SSP_MODULE
 
 Hopefully this diagram helps show how a Publisher using Prebid.js is able to integrate other SSPs into GAM.
 
-# Fledge and Ad Selection 
-While Fledge proposes a number of changes to how ad tech will function, this document is focused on the changes to the ad selection process in the context of the browser.
+# Parakeet and Ad Selection 
+While Parakeet proposes a number of changes to how ad tech will function, this document is focused on the changes to the ad selection process in the context of the browser and/or browsers trusted server agent.
 
-## 1. Chrome/Fledge Becomes the Final Selection Layer
-Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a Fledge world, Chrome will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When ```navigator.runAdAuction``` returns 'true' it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Fledge must become the final selection layer.
+## 1. Edge/Parakeet Server Becomes the Final Selection Layer
+Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a Parakeet world, Edge will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When ```navigator.createAdRequest``` returns a promise it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Fledge must become the final selection layer.
 
 SSPs are used to participating in a final selection hosted elsewhere but it raises the question of how GAM will adjust to this.
 
-## 2. SSP Logic Must Span Chrome/Fledge
+<!-- The below may not be valid in Parakeet, but we should note something about the limitation of data in the contextual request and how the browser will only call a single ad tech server per ad slot
+
+## 2. SSP Logic Must Span Edge/Parakeet
 Today SSPs are able to provide publishers with a realtime valuation of an ad slot because they have contextual and user information in one request and are able to respond with a single *best* value in response to that request.
 
 The process of selecting a best value involves the following steps:
@@ -103,8 +105,9 @@ The process of selecting a best value involves the following steps:
 4) Valuation - which bid is most valuable to the publisher at this moment?
 
 This process must now be split across the SSPs and the browser (for IG bids), which means that an SSP will no longer know what an ad slot is worth in realtime (nor will the publisher).
+-->
 
-# Prebid.js in a Fledge World
+# Prebid.js in a Parakeet World
 For the contextual ad selection process, Prebid.js can continue to function in the same manner as today. Here's what that looks like:
 
 ![Prebid.js Sequence Diagram](out/prebid_td_context/prebid_td_context.png)
