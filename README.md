@@ -88,7 +88,7 @@ Hopefully this diagram helps show how a Publisher using Prebid.js is able to int
 While Parakeet proposes a number of changes to how ad tech will function, this document is focused on the changes to the ad selection process in the context of the browser and/or browsers trusted server agent.
 
 ## 1. Edge/Parakeet Server Becomes the Final Selection Layer
-Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a Parakeet world, Edge will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When ```navigator.createAdRequest``` returns a promise it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Fledge must become the final selection layer.
+Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a Parakeet world, Edge will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When ```navigator.createAdRequest``` returns a promise it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Parakeet must become the final selection layer.
 
 SSPs are used to participating in a final selection hosted elsewhere but it raises the question of how GAM will adjust to this.
 
@@ -135,7 +135,7 @@ In order to do this selection process the SSP adapter needs to have the contextu
 
 ## Prebid IG Controller
 The Prebid IG controller must receive the winning contextual bid (already chosen by Prebid.js) and all the SSP specific metadata. The controller passes the SSP metadata to the SSP IG adapter and receives a bid (or none) from the SSP adapter. The IG Controller then compares the results from all the SSP IG Adapters and chooses a winner. Finally, the IG Controller compares the contextual winner to the IG winner. If an IG winner exists and is higher than the contextual winner, the result of ```navigator.runAdAuction``` is not ```false``` Prebid.js will render the IG ad by passing the returned opaque object to a fenced frame. If the contextual winner has the higher value then ```false``` is returned and the overall Prebid.js script renders the contextual ad.
-
+ -->
 ## Prebid IG Flow
 Here's what that looks like in a flow diagram:
 
@@ -144,39 +144,30 @@ Here's what that looks like in a flow diagram:
 1. Pub invokes final selection process in Prebid.js
 2. Prebid selects/looks up contextual winner
 3. Prebid constructs uber-metadata object (each SSP needs the contextual info and pub restrictions, etc)
-4. Prebid invokes ```navigator.runAdAuction``` with winning contextual bid, uber-metadata object, and bundled Prebid IG Controller & SSP Adapters
-5. Chrome/Fledge evaluates all interest groups stored client-side calling DSP provided ```generateBid``` functions
-6. DSP bid functions produce bids using a combination of IG and contextual data from the auction configuration
-7. Chrome/Fledge passes returned bids one at a time to Prebid IG Controller ```scoreBid``` function
-8. Prebid IG Controller invokes SSP IG adapters and passes in SSP contextual metadata and bid from DSP
-9. SSP IG Adapter does bid targeting, context targeting, validation (SSP logic)
-10. SSP IG Adapter passes back scored SSP IG ad/bid in **standardized** prebid scoring format @TODO how does prebid choose between different SSPs scores?
-11. Prebid IG Controller selects highest scoring IG ad from among those returned by SSP IG Adapters
-12. Prebid IG Controller compares contextual ad to IG ad
-13. Prebid IG Controller returned IG ad score or ```0``` if contextual ad is preferred
-14. Chrome/Fledge sorts scored ads and chooses highest score (> 0) as winner
-15. Chrome/Fledge returns opaque object for rendering if winner, or returns false (if context is winner)
-16. IG Bid Winner
-    1. ```navigator.runAdAuction``` returns opaque object
+4. Prebid invokes ```navigator.createAdRequest``` with winning contextual bid as floor, maybe some other stuff
+5. Edge sends request to Parakeet server including anonymized ad interests, IP Addresss, User Agent, and contextual parameters
+6. Parakeet server further sanitizes the ad request and forwards to prebid server including anonymized versions of: ad interests, IP address, User Agent, and context
+7. Prebid server users context (likely a stored request ID) to look up publisher configuration and send ad requests to specified exchanges with all available info (as openRTB request)
+8. Exchanges make bid requests to DSPs including anonymized user/interest data
+9. Exchanges run auction and return best bid to Prebid server
+10. Prebid server evaluates all bids and chooses a single bid to return to Parakeet
+11. Prebid server returns best bid to Parakeet
+12. Parakeet server compares best bid from prebid server with best contextual ad
+13. Parakeet server returns winning ad to Edge
+23. Edge returns opaque object for rendering if winner, or returns false (if context is winner)
+24. IG Bid Winner
+    1. ```navigator.createAdRequest``` returns opaque object
     2. Prebid record IG win
     3. Prebid passes opaque object to a fenced frame for rendering
-17. Context Bid Winner
-    1. ```navigator.runAdAuction``` returns false
+25. Context Bid Winner
+    1. ```navigator.createAdRequest``` returns false
     2. Prebid renders contextual ad
     3. Prebid records contextual win
-18. Ad has rendered
+26. Ad has rendered
 
-As can be seen in the sequence diagram above, the Fledge API is invoked by Prebid which is also responsible for contstructing the arguments.
+As can be seen in the sequence diagram above, the Parakeet API is invoked by Prebid which is also responsible for contstructing the arguments.
 
-## Winning Bid
-This could be as simple as a numeric value or it could be as rich as an OpenRTB bid response object. I think it depends on how complex the Prebid IG Controller is and what info it needs.
-
-```
-var prebidWinningConextualBid = {
-    // possibly an OpenRTB Bid Response object, though doesn't have to be
-}
-```
-
+<!--
 ## Auction Configuration
 Fledge offers a flexible configuration object which can be used to pass arbitrary information to the buyers bidding function (perBuyerSignals), the sellers scoring function (sellerSignals), or both (auctionSignals).
 
