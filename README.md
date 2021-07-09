@@ -139,7 +139,7 @@ The Prebid IG controller must receive the winning contextual bid (already chosen
 ## Prebid IG Flow
 Here's what that looks like in a flow diagram:
 
-![Prebid-td.js Sequence Diagram](out/prebid_td_interest/prebid_td_interest.png)
+![Prebid-pk.js Sequence Diagram](out/prebid_pk_interest/prebid_pk_interest.png)
 
 1. Pub invokes final selection process in Prebid.js
 2. Prebid selects/looks up contextual winner
@@ -149,21 +149,22 @@ Here's what that looks like in a flow diagram:
 6. Parakeet server further sanitizes the ad request and forwards to prebid server including anonymized versions of: ad interests, IP address, User Agent, and context
 7. Prebid server users context (likely a stored request ID) to look up publisher configuration and send ad requests to specified exchanges with all available info (as openRTB request)
 8. Exchanges make bid requests to DSPs including anonymized user/interest data
-9. Exchanges run auction and return best bid to Prebid server
-10. Prebid server evaluates all bids and chooses a single bid to return to Parakeet
-11. Prebid server returns best bid to Parakeet
-12. Parakeet server compares best bid from prebid server with best contextual ad
-13. Parakeet server returns winning ad to Edge
-23. Edge returns opaque object for rendering if winner, or returns false (if context is winner)
-24. IG Bid Winner
+9. DSPs return bids
+10. Exchanges run auction and return best bid to Prebid server
+11. Prebid server evaluates all bids and chooses a single bid to return to Parakeet
+12. Prebid server returns best bid to Parakeet
+13. Parakeet server compares best bid from prebid server with best contextual ad
+14. Parakeet server returns winning ad to Edge
+15. Edge returns opaque object for rendering if winner, or returns false (if context is winner)
+16. IG Bid Winner
     1. ```navigator.createAdRequest``` returns opaque object
     2. Prebid record IG win
     3. Prebid passes opaque object to a fenced frame for rendering
-25. Context Bid Winner
+17. Context Bid Winner
     1. ```navigator.createAdRequest``` returns false
     2. Prebid renders contextual ad
     3. Prebid records contextual win
-26. Ad has rendered
+18. Ad has rendered
 
 As can be seen in the sequence diagram above, the Parakeet API is invoked by Prebid which is also responsible for contstructing the arguments.
 
