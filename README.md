@@ -112,7 +112,7 @@ For the contextual ad selection process, Prebid.js can continue to function in t
 
 ![Prebid.js Sequence Diagram](out/prebid_td_context/prebid_td_context.png)
 
-However, the browser will also contain user Interest Group memberships which could increase the value of the ad to a buyer. The Parakeet server will carefully select which IGs can be used in server side ad selection to ensure user privacy.
+However, the browser will also contain user interest group memberships which could increase the value of the ad to a buyer. The Parakeet server will carefully select which IGs can be used in server side ad selection to ensure user privacy.
 
 The Parakeet server will only make an ad request to a single ad tech partner for each ad slot. Therefore, publishers who wish to work with multiple SSPs will need to leverage a server to fan-out requests to each SSP and choose the most appropriate bid to compete with the ad server chosen contextual ad. Prebid server already performs a similar operation and could be extended to handle this responsibiliy.
 
@@ -143,30 +143,29 @@ Here's what that looks like in a flow diagram:
 
 1. Pub invokes final selection process in Prebid.js
 2. Prebid selects/looks up contextual winner
-3. Prebid constructs uber-metadata object (each SSP needs the contextual info and pub restrictions, etc)
-4. Prebid invokes ```navigator.createAdRequest``` with winning contextual bid as floor, maybe some other stuff
-5. Edge sends request to Parakeet server including anonymized ad interests, IP Addresss, User Agent, and contextual parameters
-6. Parakeet server further sanitizes the ad request and forwards to prebid server including anonymized versions of: ad interests, IP address, User Agent, and context
-7. Prebid server users context (likely a stored request ID) to look up publisher configuration and send ad requests to specified exchanges with all available info (as openRTB request)
-8. Exchanges make bid requests to DSPs including anonymized user/interest data
-9. DSPs return bids
-10. Exchanges run auction and return best bid to Prebid server
-11. Prebid server evaluates all bids and chooses a single bid to return to Parakeet
-12. Prebid server returns best bid to Parakeet
-13. Parakeet server compares best bid from prebid server with best contextual ad
-14. Parakeet server returns winning ad to Edge
-15. Edge returns opaque object for rendering if winner, or returns false (if context is winner)
-16. IG Bid Winner
+3. Prebid invokes ```navigator.createAdRequest``` with winning contextual bid as floor, maybe some other stuff
+4. Edge sends request to Parakeet server including anonymized ad interests, IP Addresss, User Agent, and contextual parameters
+5. Parakeet server further sanitizes the ad request and forwards to prebid server including anonymized versions of: ad interests, IP address, User Agent, and context
+6. Prebid server users context (likely a stored request ID) to look up publisher configuration and send ad requests to specified exchanges with all available info (as openRTB request)
+7. Exchanges make bid requests to DSPs including anonymized user/interest data
+8. DSPs return bids
+9. Exchanges run auction and return best bid to Prebid server
+10. Prebid server evaluates all bids and chooses a single bid to return to Parakeet
+11. Prebid server returns best bid to Parakeet
+12. Parakeet server compares best bid from prebid server with best contextual ad
+13. Parakeet server returns winning ad to Edge
+14. Edge returns opaque object for rendering if winner, or returns false (if context is winner)
+15. IG Bid Winner
     1. ```navigator.createAdRequest``` returns opaque object
     2. Prebid record IG win
     3. Prebid passes opaque object to a fenced frame for rendering
-17. Context Bid Winner
+16. Context Bid Winner
     1. ```navigator.createAdRequest``` returns false
     2. Prebid renders contextual ad
     3. Prebid records contextual win
-18. Ad has rendered
+17. Ad has rendered
 
-As can be seen in the sequence diagram above, the Parakeet API is invoked by Prebid which is also responsible for contstructing the arguments.
+As can be seen in the sequence diagram above, the Parakeet API is invoked by Prebid which is also responsible for constructing the arguments.
 
 <!--
 ## Auction Configuration
