@@ -1,4 +1,5 @@
-# prebid-parakeet
+# Parakeet in Prebid.js
+
 An exploration of the role Prebid can play in a Parakeet world.
 
 ## Birth of Header Bidding
