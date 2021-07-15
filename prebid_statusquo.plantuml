@@ -44,9 +44,9 @@ activate Gam
 Gmjs <- Gam: 16. respond with winning ad, which may be prebid.js line item
 deactivate Gam
 alt GAM/AdX highest bid
-Gmjs -> Gmjs: 17. render GAM/AdX result
+Gmjs -> Gmjs: 17.1 render GAM/AdX result
 else Prebid.js highest bid
-Gmjs -> Pbjs: 17. render selected SSP ad
+Gmjs -> Pbjs: 17.2 render selected SSP ad
 end
 Pub <- Gmjs
 deactivate Gmjs
