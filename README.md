@@ -159,10 +159,12 @@ As can be seen in the sequence diagram above, the Parakeet API is invoked by Pre
 
 ## Open Questions
 
-1. Who operates the parakeet server and can all parties trust them?
+**1. Who operates the parakeet server and can all parties trust them?**
+
 The default operator in the proposal seems to be the browser vendor, who primarily represents and is trusted by the user. However, Buyers and Sellers will need to trust the Parakeet server to protect their proprietary data from being leaked. The [Garuda](https://darobin.github.io/garuda/) proposal provides a possible governance/trust model but Microsoft has not committed to something like this and it may be up to each browser vendor to make their own decision on how to run a trusted server.
 
-2. How will GAM interact with the Parakeet API?
+**2. How will GAM interact with the Parakeet API?**
+
 How will GAM integrate into the final selection layer in the browser and will it help or hinder SSPs? If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes `navigator.createAdRequest` without allowing other SSPs to participate this would be bad.
 
 
