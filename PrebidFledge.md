@@ -8,7 +8,7 @@ While Fledge proposes a number of changes to how ad tech will function, this doc
 
 ### Chrome/Fledge Becomes the Final Selection Layer
 
-Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX, and doesn't provide a price signal externally. However, in a Fledge world, Chrome will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When ```navigator.runAdAuction``` returns 'true' it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Fledge must become the final selection layer.
+Today GAM is the final ad selection layer because it contains the publisher's direct demand, is tightly integrated with AdX and doesn't provide a price signal externally. However, in a Fledge world, Chrome will contain interest group demand that isn't accessible via any other means and won't provide a price signal externally. When `navigator.runAdAuction` returns 'true' it has identified an appropriate ad for rendering based on provided bids and scoring logic. As a result, the browser/Fledge must become the final selection layer.
 
 SSPs are used to participating in a final selection hosted elsewhere but it raises the question of how GAM will adjust to this.
 
@@ -17,11 +17,12 @@ SSPs are used to participating in a final selection hosted elsewhere but it rais
 Today SSPs are able to provide publishers with a realtime valuation of an ad slot because they have contextual and user information in one request and are able to respond with a single *best* value in response to that request.
 
 The process of selecting a best value involves the following steps:
-1) Traffic quality (TQ) - is this a legitimate request from a real user?
-2) DSP qualification - which DSPs are interested in this request?
-2) Bid solicitation - which DSPs will place a bid on this request?
-3) Ad Quality (AQ) - which bids are eligible given the publisher's requirements?
-4) Valuation - which bid is most valuable to the publisher at this moment?
+
+1. Traffic quality (TQ) - is this a legitimate request from a real user?
+2. DSP qualification - which DSPs are interested in this request?
+3. Bid solicitation - which DSPs will place a bid on this request?
+4. Ad Quality (AQ) - which bids are eligible given the publisher's requirements?
+5. Valuation - which bid is most valuable to the publisher at this moment?
 
 This process must now be split across the SSPs and the browser (for IG bids), which means that an SSP will no longer know what an ad slot is worth in realtime (nor will the publisher).
 
@@ -34,8 +35,9 @@ For the contextual ad selection process, Prebid.js can continue to function in t
 However, the browser will also contain bids that are targeted at Interest Groups. These bids cannot escape the Fledge sandbox, which means that logic to choose between them must be sent into Fledge.
 
 There are two parts to the logic that must be sent into TurtleDove:
-1) Prebid IG controller - the script that runs the overall IG bid selection process
-2) Prebig IG SSP adapters - the SSP implemented functionality to choose from among an SSP's IG bids
+
+1. Prebid IG controller - the script that runs the overall IG bid selection process
+2. Prebid IG SSP adapters - the SSP implemented functionality to choose from among an SSP's IG bids
 
 ### Prebid IG SSP Adapter
 
@@ -49,7 +51,7 @@ In order to do this selection process the SSP adapter needs to have the contextu
 
 ### Prebid IG Controller
 
-The Prebid IG controller must receive the winning contextual bid (already chosen by Prebid.js) and all the SSP specific metadata. The controller passes the SSP metadata to the SSP IG adapter and receives a bid (or none) from the SSP adapter. The IG Controller then compares the results from all the SSP IG Adapters and chooses a winner. Finally, the IG Controller compares the contextual winner to the IG winner. If an IG winner exists and is higher than the contextual winner, the result of ```navigator.runAdAuction``` is not ```false``` Prebid.js will render the IG ad by passing the returned opaque object to a fenced frame. If the contextual winner has the higher value then ```false``` is returned and the overall Prebid.js script renders the contextual ad.
+The Prebid IG controller must receive the winning contextual bid (already chosen by Prebid.js) and all the SSP-specific metadata. The controller passes the SSP metadata to the SSP IG adapter and receives a bid (or none) from the SSP adapter. The IG Controller then compares the results from all the SSP IG Adapters and chooses a winner. Finally, the IG Controller compares the contextual winner to the IG winner. If an IG winner exists and is higher than the contextual winner, the result of `navigator.runAdAuction` is not `false` Prebid.js will render the IG ad by passing the returned opaque object to a fenced frame. If the contextual winner has the higher value then `false` is returned and the overall Prebid.js script renders the contextual ad.
 
 ### Prebid IG Flow
 
@@ -60,24 +62,24 @@ Here's what that looks like in a flow diagram:
 1. Pub invokes final selection process in Prebid.js
 2. Prebid selects/looks up contextual winner
 3. Prebid constructs uber-metadata object (each SSP needs the contextual info and pub restrictions, etc)
-4. Prebid invokes ```navigator.runAdAuction``` with winning contextual bid, uber-metadata object, and bundled Prebid IG Controller & SSP Adapters
-5. Chrome/Fledge evaluates all interest groups stored client-side calling DSP provided ```generateBid``` functions
+4. Prebid invokes `navigator.runAdAuction` with winning contextual bid, uber-metadata object, and bundled Prebid IG Controller & SSP Adapters
+5. Chrome/Fledge evaluates all interest groups stored client-side calling DSP provided `generateBid` functions
 6. DSP bid functions produce bids using a combination of IG and contextual data from the auction configuration
-7. Chrome/Fledge passes returned bids one at a time to Prebid IG Controller ```scoreBid``` function
+7. Chrome/Fledge passes returned bids one at a time to Prebid IG Controller `scoreAd` function
 8. Prebid IG Controller invokes SSP IG adapters and passes in SSP contextual metadata and bid from DSP
 9. SSP IG Adapter does bid targeting, context targeting, validation (SSP logic)
 10. SSP IG Adapter passes back scored SSP IG ad/bid in **standardized** prebid scoring format @TODO how does prebid choose between different SSPs scores?
 11. Prebid IG Controller selects highest scoring IG ad from among those returned by SSP IG Adapters
 12. Prebid IG Controller compares contextual ad to IG ad
-13. Prebid IG Controller returned IG ad score or ```0``` if contextual ad is preferred
+13. Prebid IG Controller returned IG ad score or `0` if a contextual ad is preferred
 14. Chrome/Fledge sorts scored ads and chooses highest score (> 0) as winner
 15. Chrome/Fledge returns opaque object for rendering if winner, or returns false (if context is winner)
 16. IG Bid Winner
-    1. ```navigator.runAdAuction``` returns opaque object
+    1. `navigator.runAdAuction` returns opaque object
     2. Prebid record IG win
     3. Prebid passes opaque object to a fenced frame for rendering
 17. Context Bid Winner
-    1. ```navigator.runAdAuction``` returns false
+    1. `navigator.runAdAuction` returns false
     2. Prebid renders contextual ad
     3. Prebid records contextual win
 18. Ad has rendered
@@ -118,7 +120,8 @@ const myAuctionConfig = {
   'perBuyerSignals': {
     'www.example-dsp.com': {...},
     'www.another-buyer.com': {...},
-    ...},
+    ...
+    },
 };
 ```
 
@@ -136,11 +139,13 @@ navigator.runAdAuction(myAuctionConfig).then((auctionResult) => {
 
 ## Open Questions
 
-1. Is there a permissions model for access to IG Bids? What is it?
+**1. Is there a permissions model for access to IG Bids? What is it?**
+
 An SSP specific TD API seems impossible (see below). The browser running the auction seems bad (see Parrrot). Having bids available for rendering by anyone seems problematic as well. This proposal assumes that anyone who invokes renderInterestGroupAd has access to all bids. I suppose SSPs could encrypt their responses and then pass a key into the metadata object that would allow only them to decrypt it. This actually seems like it might be the best way, though passing an encryption key through the wild is only mildly secure so it's not real security.
 
-2. How will GAM interact with the TD API?
-How will GAM integrate into the final selection layer in the browser and will it help or hinder SSPs? If GAM were to provide an an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes ```navigator.renderInterestGroupAd``` without allowing other SSPs to participate this would be bad.
+**2. How will GAM interact with the TD API?**
+
+How will GAM integrate into the final selection layer in the browser and will it help or hinder SSPs? If GAM were to provide an API/adapter that integrated with Prebid.js this would be a good thing. If, on the other hand, GAM provides a tag library that directly invokes `navigator.renderInterestGroupAd` without allowing other SSPs to participate this would be bad.
 
 ## An alternative idea that won't work:
 
