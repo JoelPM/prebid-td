@@ -83,9 +83,9 @@ This sequence diagram attempts to illustrate how Prebid.js functions on a publis
 14. GAM ad tag is invoked.
 15. GAM ad tag calls GAM (and AdX, not OB due to their policies)
 16. GAM runs the final selection process, which includes line items activated by Prebid.js
-17. GAM creative is rendered regardless of outcome, but what is in that creative will vary:
-  - [GAM/AdX winner] In this situation the rendered ad tag is a creative sent via GAM/AdX.
-  - [Prebid.js winner] In this case the tag rendered from GAM was associated with a Prebid.js lineitem and it calls back into Prebid.js to render the earlier selected creative.
+17. GAM creative is rendered regardless of the outcome, but what is in that creative will vary:
+    1. GAM/AdX winner: In this situation, the rendered ad tag is a creative sent via GAM/AdX.
+    2. Prebid.js winner: In this case, the tag rendered from GAM was associated with a Prebid.js line item and it calls back into Prebid.js to render the earlier selected creative.
 
 While it is a technical detail to show the invocation of the `prebid_[SSP_MODULE].js` in the sequence diagram above, it's there to illustrate the principle of SSP involvement and code control in the context of the greater auction that occurs.
 
