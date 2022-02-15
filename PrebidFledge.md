@@ -4,11 +4,11 @@ Prior version of this doc available [here](PrebidFledgeOld.md).
 
 The goal of Prebid is to make the integration of Fledge and Parakeet demand seamless, at last techincally, to publishers.
 
-Component Auctions make it possible for publishers to continue working with multiple SSPs. As noted above, the biggest open question is how/if GAM/GPT will provide an integration method that makes it possible for other SSPs to integrate. At a high-level, the new Prebid.js flow would look something like this:
+Component Auctions make it possible for publishers to continue working with multiple SSPs. At a high-level, the new Prebid.js flow would look something like this:
 
 ![Prebid.js Fledge Overview Diagram](out/prebid_fledge_overview/prebid_fledge_overview.png)
 
-Steps that are significantly different are noted here:
+To accommodate component auctions, the following changes are needed.
 
 ## Signal Fledge Eligibility (Step 3 & 4)
 Prebid.js must determine if Interest Group bidding is eligible on the current page and in the current environment. This flag should (probably) be passed in the [`bidderRequest`](https://docs.prebid.org/dev-docs/bidder-adaptor.html#bidderrequest-parameters) parameters object and bidders will need to modify [`BidAdaptor.buildRequests()`](https://docs.prebid.org/dev-docs/bidder-adaptor.html#building-the-request).
