@@ -1,0 +1,60 @@
+@startuml prebid_fledge_overview
+
+participant User
+participant "pub.com" as Pub
+participant "prebid.js" as Pbjs
+participant "prebid_[SSP_MODULE].js" as PbSspjs
+participant SSPs
+participant DSPs
+participant "gpt.js" as Gmjs
+participant "GAM/OB/AdX" as Gam
+
+User -> Pub: 1. navigates browser to pub.com
+activate Pub
+Pub -> Pbjs: 2. load, configure, execute prebid.js
+activate Pbjs
+Pbjs -> PbSspjs: 3. invoke SSP bid adapters
+activate PbSspjs
+PbSspjs -> SSPs: 4. ad request
+activate SSPs
+SSPs -> DSPs: 5. make bid requests 
+activate DSPs
+SSPs <- DSPs: 6. respond with contextual bids and IG signals
+deactivate DSPs
+PbSspjs <- SSPs: 7. bid and/or IG signal/intent
+deactivate SSPs
+Pbjs <- PbSspjs: 8. bid w/optional AuctionConfig
+deactivate PbSspjs
+
+Pbjs -> Gmjs: 9. configure k/v pairs for selected ad
+activate Gmjs
+Pbjs -> Gmjs: 10. load slot
+Gmjs -> Gam: 11. ad request
+activate Gam
+Gmjs <- Gam: 12. respond with ad & AuctionConfig?
+deactivate Gam
+Pbjs <- Gmjs: 13. ????
+deactivate Gmjs
+
+note over Pbjs, Gmjs
+Big open question: Will GPT provide hooks to integrate with Prebid.js?
+end note
+
+Pbjs -> Pbjs: 14. Create uber AuctionConfig
+Pbjs -> Fledge: 15. runAdAuction
+
+alt A: IG winner
+activate Fledge
+Pbjs <- Fledge: 16A. opaque pointer
+Pub <- Pbjs: 17A. render ad in safe frame
+else B: No IG winner
+Pbjs <- Fledge: 16B. null result
+Pub <- Pbjs: 17B. render contextual winner
+end
+deactivate Fledge
+deactivate Pbjs
+
+User <- Pub: sees ad
+
+deactivate Pub
+@enduml
