@@ -13,10 +13,10 @@ To accommodate component auctions, the following changes are needed.
 ## Signal Fledge Eligibility (Step 3 & 4)
 Prebid.js must determine if Interest Group bidding is eligible on the current page and in the current environment. This flag should (probably) be passed in the [`bidderRequest`](https://docs.prebid.org/dev-docs/bidder-adaptor.html#bidderrequest-parameters) parameters object and bidders will need to modify [`BidAdaptor.buildRequests()`](https://docs.prebid.org/dev-docs/bidder-adaptor.html#building-the-request).
 
-## Pass Interst Group Signals/Intent (Step 6 & 7)
+## Pass Interest Group Signals/Intent (Step 6 & 7)
 Traditionally DSPs bid or don't bid. In a Fledge world they may also respond with IG signals or some other means of indicating they wish their Interest Group bids to participate if present. DSPs and SSPs must pass through one (bids), the other (IG signals/intent), or both. This means extending the OpenRTB protocol to accommodate the passing of IG signals/intent through the chain regardless of the presence of bids (`BidResponse.ext.igbid` for example).
 
-## Construct ComponentAuction AuctionConfig (Step 8)
+## Construct Component Auction AuctionConfig (Step 8)
 In addition to passing a bid to the Prebid.js AuctionManager, they will need to construct an AuctionConfig if they wish to participate in the IG auction. It is also necessary to handle the case that they wish to participate in the Interest Group Bidding without having a contextual ad. This will require changes to the [`BidAdaptor.interpretResponse`](https://docs.prebid.org/dev-docs/bidder-adaptor.html#interpreting-the-response) function. If no AuctionConfig is present, the bidder will participate only in the contextual auction.
 
 *Why should the SSP construct the AuctionConfig?*
@@ -37,4 +37,5 @@ Prebid was basically a creative hack to inject other demand into GAM. It would b
 ## What does the logic for the uber auction look like?
 Still TBD, though we can design that once there's agreement that the model above could work.
 
-## 
+## What's a sequence diagram of Fledge with component auctions look like?
+I'll work on that next.
