@@ -1,0 +1,70 @@
+@startuml prebid_fledge_overview
+
+participant User
+participant "pub.com" as Pub
+participant "prebid.js" as Pbjs
+participant "prebid_[SSP_MODULE].js" as PbSspjs
+participant SSPs
+participant DSPs
+participant "gpt.js" as Gmjs
+participant "GAM/OB/AdX" as Gam
+'autonumber
+
+User -> Pub: 1. navigates browser to pub.com
+activate Pub
+Pub -> Pbjs: 2. loads & configures Prebid.js
+Pub -> Gmjs: 3. loads & configures GPT
+
+Pub -> Pbjs: 4. executes Prebid
+activate Pbjs
+
+Pbjs -> Pbjs: 5. detects FLEDGE eligibility
+Pbjs -> PbSspjs: 6. invokes bid adapters
+activate PbSspjs
+PbSspjs -> SSPs: 7. makes ad request
+activate SSPs
+SSPs -> DSPs: 8. solicits contextual bids
+activate DSPs
+SSPs <- DSPs: 9. returns contextual bids and/or IG signals
+deactivate DSPs
+PbSspjs <- SSPs: 10. returns winning bid and/or AuctionConfig
+deactivate SSPs
+Pbjs <- PbSspjs: 11. registers bid and/or AuctionConfig
+deactivate PbSspjs
+
+Pbjs -> Gmjs: 12. invokes slot.setConfig for all AuctionConfigs received
+activate Gmjs
+Pbjs -> Gmjs: 13. configures k/v pairs for selected ad
+Pbjs -> Gmjs: 14. invokes load slot
+deactivate Pbjs
+Gmjs -> Gam: 15. makes GAM ad request
+activate Gam
+Gmjs <- Gam: 16. returns GAM ad response
+deactivate Gam
+Gmjs -> Fledge: 17. invokes runAdAuction w/ComponentAuctions
+
+alt A: Interest Group Auction winner
+    activate Fledge
+    Gmjs <- Fledge: 18. returns opaque pointer
+    Pub <- Gmjs: 19. renders IG ad in fenced frame
+    deactivate Gmjs
+else B: No IG winner
+    Gmjs <- Fledge: 18. returns null
+    activate Gmjs
+    alt B1: GAM winner
+        Pub <- Gmjs: 19. renders contextual winner
+    else B2: Prebid winner
+        Pbjs <- Gmjs: 19 renders Prebid script/tag 
+        deactivate Gmjs
+        activate Pbjs
+        Pub <- Pbjs: 20. renders Prebid contextual winner
+        deactivate Pbjs
+    end
+end
+deactivate Fledge
+deactivate Pbjs
+
+User <- Pub: 20. sees ad
+
+deactivate Pub
+@enduml
